@@ -1,0 +1,47 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+#exclude mbed
+BUILD
+DebugConfig
+mbed-os
+testsubmodule.uvguix.midel
+TCS34725.h~RF24ecec3.TMP
+Si7021.h~RF240f7db.TMP
+MMA8451Q.h~RF25384f1.TMP
+c4d879a39775.zip
+testsubmodule.uvguix.JoseLuis
+Readings.txt
+.hg_archival.txt
+README.md
+SerialGPS.h~RF9bc1e6.TMP
