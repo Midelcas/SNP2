@@ -25,8 +25,36 @@
 #include "trace_helper.h"
 #include "lora_radio_helper.h"
 #include "mbed.h"
+#include "HW5P-1.h"
+#include "SOIL.h"
+#include "TCS34725.h"
+#include "MMA8451Q.h"
+#include "Si7021.h"
+#include "SerialGPS.h"
+
+#define TCS_ADDR 0x52
+#define MMA_ADDR 0x1D
+#define SI7_ADDR 0x50
+#define GREEN				5
+#define RED					3
+#define LEDOFF			7
 
 using namespace events;
+
+BusOut leds(PH_0, PH_1, PB_13);
+LightData lightData;
+SoilData soilData;
+HW5P_1 *lightSensor=0;
+SOIL *soilSensor=0;
+ColorData colorData;
+AccelerometerData accData;
+AmbientData ambData;
+TCS34725 *tcs=0;
+MMA8451Q *acc=0;
+Si7021 *amb=0;
+extern Thread threadGPS;
+extern void GPS_thread();
+extern GPSData B1gps;
 
 
 // Max payload size can be LORAMAC_PHY_MAXPAYLOAD.
@@ -89,7 +117,29 @@ static LoRaWANInterface lorawan(radio);
  */
 static lorawan_app_callbacks_t callbacks;
 
+void setup_sensors(void){
+	threadGPS.start(GPS_thread);
+	lightSensor=new HW5P_1(PA_4);
+	soilSensor=new SOIL(PA_0);
+	tcs = new TCS34725(PB_9,PB_8,TCS_ADDR, PB_14);
+	acc = new MMA8451Q(PB_9,PB_8,MMA_ADDR);
+	amb = new Si7021(PB_9,PB_8,SI7_ADDR);
+	
+	if(tcs->checkId()){
+		tcs->initColorSensor();
+	}
+}
 
+void measure (void){
+	soilData=soilSensor->measure();
+	lightData=lightSensor->measure();
+	colorData = tcs->readRegisters();
+	wait(0.1);
+	accData = acc->getAccAllAxis();
+	wait(0.1);
+	ambData = amb->measure();
+	threadGPS.signal_set(0x2);
+}
 
 
 /**
@@ -97,6 +147,8 @@ static lorawan_app_callbacks_t callbacks;
  */
 int main (void)
 {
+		setup_sensors();
+	
     // setup tracing
     setup_trace();
 
@@ -152,14 +204,82 @@ int main (void)
 }
 
 
+void prepare_tx_buffer(void){
+	int16_t tempentera = ambData.temperature*100;
+	tx_buffer[0]=(char)((tempentera&0xff00)>>8);
+	tx_buffer[1]=(char)(tempentera&0x00ff);
+
+	int16_t humentera = ambData.humidity*100;
+	//int16_t humentera = (38.752)*100;
+	if(humentera>10000){
+		printf("\nALERT:%d - %f\n", humentera, ambData.humidity);
+	}
+	tx_buffer[2]=(char)((humentera&0xff00)>>8);
+	tx_buffer[3]=(char)(humentera&0x00ff);
+	
+	int16_t lightentera = lightData.light*100;
+	tx_buffer[4]=(char)((lightentera&0xff00)>>8);
+	tx_buffer[5]=(char)(lightentera&0x00ff);
+	
+	int16_t soilentera = soilData.soil*100;
+	tx_buffer[6]=(char)((soilentera&0xff00)>>8);
+	tx_buffer[7]=(char)(soilentera&0x00ff);
+	
+	int16_t xentera = accData.x*100;
+	tx_buffer[8]=(char)((xentera&0xff00)>>8);
+	tx_buffer[9]=(char)(xentera&0x00ff);
+	
+	int16_t yentera = accData.y*100;
+	tx_buffer[10]=(char)((yentera&0xff00)>>8);
+	tx_buffer[11]=(char)(yentera&0x00ff);
+	
+	int16_t zentera = accData.z*100;
+	tx_buffer[12]=(char)((zentera&0xff00)>>8);
+	tx_buffer[13]=(char)(zentera&0x00ff);
+	
+	uint16_t clear = colorData.clear_value;
+	tx_buffer[14]=(char)((clear&0xff00)>>8);
+	tx_buffer[15]=(char)(clear&0x00ff);
+	
+	uint16_t red = colorData.red_value;
+	tx_buffer[16]=(char)((red&0xff00)>>8);
+	tx_buffer[17]=(char)(red&0x00ff);
+	
+	uint16_t green = colorData.green_value;
+	tx_buffer[18]=(char)((green&0xff00)>>8);
+	tx_buffer[19]=(char)(green&0x00ff);
+	
+	uint16_t blue = colorData.blue_value;
+	tx_buffer[20]=(char)((blue&0xff00)>>8);
+	tx_buffer[21]=(char)(blue&0x00ff);
+	
+	uint8_t bytes1[4];
+	uint8_t bytes2[4];
+	*(float*)(bytes1) = B1gps.latitude;
+	*(float*)(bytes2) = B1gps.longitude;
+	tx_buffer[22] = bytes1[0];
+	tx_buffer[23] = bytes1[1];
+	tx_buffer[24] = bytes1[2];
+	tx_buffer[25] = bytes1[3];
+	tx_buffer[26] = bytes2[0];
+	tx_buffer[27] = bytes2[1];
+	tx_buffer[28] = bytes2[2];
+	tx_buffer[29] = bytes2[3];
+	for(int i=0; i<sizeof(tx_buffer); i++){
+			printf("%02x", tx_buffer[i]);
+	}
+}
+
 /**
  * Sends a message to the Network Server
  */
 static void send_message()
 {
-    uint16_t packet_len;
-    int16_t retcode;
-    float sensor_value;
+		int16_t retcode;
+		uint16_t packet_len=30;
+		measure();
+    prepare_tx_buffer();
+/*    float sensor_value;
 
     if (ds1820.begin()) {
         ds1820.startConversion();
@@ -170,8 +290,8 @@ static void send_message()
         return;
     }
 		printf("\r\n VALUE:%3.1f \r\n", sensor_value);
-    packet_len = sprintf((char*) tx_buffer, "%3.1f", sensor_value);
-
+    packet_len = sprintf((char*) tx_buffer, "%3.1f%d", sensor_value, 45);
+*/
 
     retcode = lorawan.send(MBED_CONF_LORA_APP_PORT, tx_buffer, packet_len,
                            MSG_CONFIRMED_FLAG);
@@ -192,6 +312,9 @@ static void send_message()
 static void receive_message()
 {
     int16_t retcode;
+		uint8_t red[3]={'R','e','d'};
+		uint8_t green[6]={'G','r','e','e','n'};
+		uint8_t off[3]={'O','F','F'};
     retcode = lorawan.receive(MBED_CONF_LORA_APP_PORT, rx_buffer,
                               sizeof(rx_buffer),
                               MSG_CONFIRMED_FLAG|MSG_UNCONFIRMED_FLAG);
@@ -204,9 +327,15 @@ static void receive_message()
     printf(" Data:");
 
     for (uint8_t i = 0; i < retcode; i++) {
-        printf("%x", rx_buffer[i]);
+        printf("%c", rx_buffer[i]);
     }
-
+		if(memcmp(red, rx_buffer, 3)==0){
+			leds=RED;
+		}else if(memcmp(off, rx_buffer, 3)==0){
+			leds=LEDOFF;
+		}else if(memcmp(green, rx_buffer, 6)==0){
+			leds=GREEN;
+		}
     printf("\r\n Data Length: %d\r\n", retcode);
 
     memset(rx_buffer, 0, sizeof(rx_buffer));

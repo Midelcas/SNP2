@@ -7151,6 +7151,71 @@
               <FileType>5</FileType>
               <FilePath>.\trace_helper.h</FilePath>
             </File>
+            <File>
+              <FileName>HW5P-1.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\HW5P-1.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>HW5P-1.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HW5P-1.h</FilePath>
+            </File>
+            <File>
+              <FileName>MMA8451Q.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\MMA8451Q.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>MMA8451Q.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\MMA8451Q.h</FilePath>
+            </File>
+            <File>
+              <FileName>SerialGPS.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\SerialGPS.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>SerialGPS.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\SerialGPS.h</FilePath>
+            </File>
+            <File>
+              <FileName>Si7021.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Si7021.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>Si7021.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Si7021.h</FilePath>
+            </File>
+            <File>
+              <FileName>SOIL.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\SOIL.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>SOIL.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\SOIL.h</FilePath>
+            </File>
+            <File>
+              <FileName>TCS34725.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\TCS34725.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>TCS34725.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\TCS34725.h</FilePath>
+            </File>
+            <File>
+              <FileName>threadGPS.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\threadGPS.cpp</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
