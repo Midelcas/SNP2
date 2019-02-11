@@ -136,6 +136,7 @@ void setup_sensors(void){
 
 void measure (void){
 	threadGPS.signal_set(0x2);
+	wait(1);
 	soilData=soilSensor->measure();
 	lightData=lightSensor->measure();
 	colorData = tcs->readRegisters();
@@ -143,6 +144,7 @@ void measure (void){
 	accData = acc->getAccAllAxis();
 	wait(0.1);
 	ambData = amb->measure();
+	printf("HUM:%f", ambData.humidity);
 }
 
 
